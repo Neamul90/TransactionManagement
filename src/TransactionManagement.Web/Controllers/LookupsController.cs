@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using TransactionManagement.Application.Lookups.Queries;
 using TransactionManagement.Application.Lookups.Queries.SearchBusinessPartners;
 using TransactionManagement.Application.Lookups.Queries.SearchProducts;
 
@@ -11,8 +12,8 @@ namespace TransactionManagement.Web.Controllers;
 /// This is the one place the application returns JSON rather than a view. It exists because the
 /// alternative — rendering every product and partner into the page — does not survive a real
 /// catalogue: 22,000 products would mean 22,000 option elements per detail row. The endpoints are
-/// read-only, bounded to ten rows, and dispatch through the same MediatR pipeline as every screen,
-/// so validation, logging and error handling behave identically.
+/// read-only, bounded by <see cref="LookupDefaults"/>, and dispatch through the same MediatR
+/// pipeline as every screen, so validation, logging and error handling behave identically.
 /// </para>
 /// </summary>
 public sealed class LookupsController : Controller

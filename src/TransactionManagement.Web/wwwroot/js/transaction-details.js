@@ -7,7 +7,7 @@
  * the server, the only place a rule can actually be relied upon.
  *
  * No catalogue is embedded in the page. Products and partners are queried from /Lookups as the user
- * types, ten rows at a time, so page weight does not grow with the size of the catalogue.
+ * types, a bounded page at a time, so page weight does not grow with the size of the catalogue.
  */
 (function () {
     'use strict';

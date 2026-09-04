@@ -72,12 +72,6 @@
 (function () {
     'use strict';
 
-    document.addEventListener('click', function (event) {
-        if (event.target.closest('[data-print-trigger]')) {
-            window.print();
-        }
-    });
-
     document.querySelectorAll('form[data-confirm]').forEach(function (form) {
         form.addEventListener('submit', function (event) {
             if (!window.confirm(form.dataset.confirm)) {
