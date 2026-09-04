@@ -12,11 +12,6 @@
     <div class="panel__header">
         <i class="bi bi-list-ol"></i>
         <span>Transaction Details</span>
-        <span class="panel__header-actions">
-            <button type="button" class="btn btn-sm btn-primary" id="add-detail-row">
-                <i class="bi bi-plus-lg"></i> Add Detail
-            </button>
-        </span>
     </div>
 
     <div class="table-wrapper">
@@ -33,6 +28,14 @@
                 </tr>
             </thead>
             <tbody>
+                @* Shown while the grid is empty; the script hides it as soon as a line exists. *@
+                <tr class="detail-grid__empty" id="detail-grid-empty" hidden="@(Model.Details.Count > 0)">
+                    <td colspan="7">
+                        <i class="bi bi-search"></i>
+                        <span>Search for a product above to add the first detail line.</span>
+                    </td>
+                </tr>
+
                 @foreach (var detail in Model.Details)
                 {
                     var key = Guid.NewGuid().ToString("N");
@@ -41,13 +44,10 @@
                         <td data-label="Product">
                             <input type="hidden" name="Details.Index" value="@key" />
                             <input type="hidden" name="Details[@key].Id" value="@detail.Id" />
-                            <select name="Details[@key].ProductId" class="form-select form-select-sm" required>
-                                <option value="">-- select product --</option>
-                                @foreach (var product in Model.Products)
-                                {
-                                    <option value="@product.Id" selected="@(product.Id == detail.ProductId)">@product.DisplayText</option>
-                                }
-                            </select>
+                            @* The product is chosen in the search box above, so the row stores the
+                               identifier and shows the name. No per-row catalogue is rendered. *@
+                            <input type="hidden" name="Details[@key].ProductId" value="@detail.ProductId" class="detail-product-id" />
+                            <span class="detail-grid__product">@detail.ProductDisplayText</span>
                         </td>
                         <td data-label="Date">
                             <input type="date"
@@ -123,13 +123,8 @@
         <td data-label="Product">
             <input type="hidden" name="Details.Index" value="__KEY__" />
             <input type="hidden" name="Details[__KEY__].Id" value="0" />
-            <select name="Details[__KEY__].ProductId" class="form-select form-select-sm" required>
-                <option value="">-- select product --</option>
-                @foreach (var product in Model.Products)
-                {
-                    <option value="@product.Id">@product.DisplayText</option>
-                }
-            </select>
+            <input type="hidden" name="Details[__KEY__].ProductId" value="0" class="detail-product-id" />
+            <span class="detail-grid__product"></span>
         </td>
         <td data-label="Date">
             <input type="date" name="Details[__KEY__].DetailDate" class="form-control form-control-sm" required />

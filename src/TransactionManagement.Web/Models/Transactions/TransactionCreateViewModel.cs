@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using TransactionManagement.Application.Dtos.Lookups;
 
 namespace TransactionManagement.Web.Models.Transactions;
 
@@ -29,9 +28,10 @@ public sealed class TransactionCreateViewModel
 
     public List<TransactionDetailRowViewModel> Details { get; set; } = [];
 
+    /// <summary>
+    /// Display text for the partner currently selected, so the picker can render its one option.
+    /// The list itself is fetched on demand from the lookup endpoint.
+    /// </summary>
     [BindNever]
-    public IReadOnlyCollection<BusinessPartnerLookupDto> BusinessPartners { get; set; } = [];
-
-    [BindNever]
-    public IReadOnlyCollection<ProductLookupDto> Products { get; set; } = [];
+    public string BusinessPartnerDisplayText { get; set; } = string.Empty;
 }

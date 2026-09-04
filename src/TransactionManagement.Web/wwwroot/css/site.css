@@ -20,7 +20,8 @@
      14  Error page
      15  Utilities
      16  Invoice document
-     17  Responsive
+     17  Select2 theming
+     18  Responsive
    ============================================================================================= */
 
 /* -- 01  Design tokens ----------------------------------------------------------------------- */
@@ -914,8 +915,25 @@ body {
 }
 
 .invoice-search__option:hover,
-.invoice-search__option:focus {
+.invoice-search__option:focus,
+.invoice-search__option--active {
     background-color: var(--tm-blue-soft);
+    color: var(--tm-blue-dark);
+}
+
+.invoice-search__heading {
+    padding: .45rem .6rem .3rem;
+    font-size: .66rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--tm-muted);
+}
+
+.invoice-search__message {
+    padding: .55rem .6rem;
+    font-size: .84rem;
+    color: var(--tm-muted);
 }
 
 .invoice-search__option-code {
@@ -1043,7 +1061,54 @@ body {
     margin-inline-start: auto;
     display: flex;
     align-items: center;
+    gap: .6rem;
+}
+
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     gap: .5rem;
+    padding: .62rem 1.55rem;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    font-size: .9rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: box-shadow .16s ease, transform .12s ease,
+                background-color .16s ease, color .16s ease, border-color .16s ease;
+}
+
+.btn-action--save {
+    background-image: linear-gradient(135deg, var(--tm-blue-light) 0%, var(--tm-blue-dark) 100%);
+    color: #ffffff;
+    box-shadow: 0 6px 18px rgba(13, 71, 201, .35);
+}
+
+.btn-action--save:hover,
+.btn-action--save:focus {
+    color: #ffffff;
+    box-shadow: 0 9px 24px rgba(13, 71, 201, .45);
+    transform: translateY(-1px);
+}
+
+.btn-action--save:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(13, 71, 201, .35);
+}
+
+.btn-action--cancel {
+    background-color: var(--tm-surface);
+    border-color: var(--tm-border);
+    color: var(--tm-muted);
+}
+
+.btn-action--cancel:hover,
+.btn-action--cancel:focus {
+    background-color: var(--tm-body-bg);
+    border-color: #cdd5e2;
+    color: var(--tm-text);
 }
 
 /* -- 13  Detail grid ------------------------------------------------------------------------- */
@@ -1084,6 +1149,12 @@ body {
     padding-block: .3rem;
 }
 
+.detail-grid__product {
+    display: inline-block;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
 .detail-grid__col-product { width: 24%; }
 .detail-grid__col-date { width: 13%; }
 .detail-grid__col-description { width: 26%; }
@@ -1093,9 +1164,16 @@ body {
 .detail-grid__col-action { width: 4%; }
 
 .detail-grid__empty td {
-    padding: 2rem 1rem;
+    padding: 2.25rem 1rem;
     text-align: center;
     color: var(--tm-muted);
+}
+
+.detail-grid__empty i {
+    display: block;
+    margin-bottom: .4rem;
+    font-size: 1.4rem;
+    color: #aab3c2;
 }
 
 /* -- 14  Error page -------------------------------------------------------------------------- */
@@ -1348,7 +1426,73 @@ body {
     color: var(--tm-muted);
 }
 
-/* -- 17  Responsive -------------------------------------------------------------------------- */
+/* -- 17  Select2 theming --------------------------------------------------------------------- */
+/*
+   Select2 ships its own look; these rules bring it in line with Bootstrap's form controls and the
+   palette above, so a searchable picker is visually indistinguishable from a plain <select>.
+   The !important on width is Select2's own inline width calculation, which is the one style in the
+   application not under this file's control.
+*/
+.select2-container {
+    width: 100% !important;
+}
+
+.select2-container--default .select2-selection--single {
+    height: calc(1.5em + .75rem + 2px);
+    border: 1px solid var(--tm-border);
+    border-radius: var(--tm-radius-sm);
+    background-color: var(--tm-surface);
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    padding-inline: .75rem 2rem;
+    line-height: calc(1.5em + .75rem);
+    font-size: .86rem;
+    color: var(--tm-text);
+}
+
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #8a94a6;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: calc(1.5em + .75rem);
+}
+
+.select2-container--default.select2-container--focus .select2-selection--single,
+.select2-container--default.select2-container--open .select2-selection--single {
+    border-color: var(--tm-blue-light);
+    box-shadow: 0 0 0 .18rem rgba(13, 71, 201, .12);
+}
+
+.select2-dropdown {
+    border-color: var(--tm-border);
+    border-radius: var(--tm-radius-sm);
+    box-shadow: var(--tm-shadow-lg);
+}
+
+.select2-search--dropdown .select2-search__field {
+    border: 1px solid var(--tm-border);
+    border-radius: var(--tm-radius-sm);
+    padding: .35rem .5rem;
+    font-size: .85rem;
+}
+
+.select2-container--default .select2-results__option {
+    padding: .4rem .6rem;
+    font-size: .85rem;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: var(--tm-blue);
+}
+
+.select2-container--default .select2-results__option[aria-selected="true"] {
+    background-color: var(--tm-blue-soft);
+    color: var(--tm-blue);
+}
+
+/* -- 18  Responsive -------------------------------------------------------------------------- */
 @media (max-width: 1399.98px) {
     .table-controls__search {
         width: 13rem;
@@ -1635,7 +1779,8 @@ body {
         margin-inline-start: 0;
     }
 
-    .action-bar__buttons .btn {
+    .action-bar__buttons .btn,
+    .action-bar__buttons .btn-action {
         flex: 1 1 0;
     }
 }

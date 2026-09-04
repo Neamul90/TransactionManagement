@@ -538,6 +538,20 @@ The logo is embedded in the definition as base64 PNG (`EmbeddedImages`), because
 the SVG the screen uses. `wwwroot/img/logo.svg` and that embedded copy are the same mark; replacing
 the logo means replacing both.
 
+### Lookups are server-side
+
+Neither the product catalogue nor the partner list is rendered into the transaction form. Both are
+queried from `/Lookups` as the user types, ten rows at a time, through
+`SearchProductsQuery` / `SearchBusinessPartnersQuery` — bounded by `LookupDefaults` so no caller can
+turn a type-ahead into a table scan. This is the one place the application returns JSON instead of a
+view, and it earns the exception: with a real catalogue of ~22,000 products, rendering a `<select>`
+per detail row would put 22,000 `<option>` elements in the page for every line.
+
+A detail row therefore stores the product identifier in a hidden input and displays the name; the
+product is chosen once, in the search box. When a submitted form fails validation the rows come back
+carrying identifiers but no names, so `GetProductsByIdsQuery` and `GetBusinessPartnerByIdQuery`
+resolve exactly the labels that screen needs — never the whole list.
+
 ### Responsive behaviour
 
 Every screen is usable from roughly 320px upward. Below 992px the sidebar becomes an overlay with a

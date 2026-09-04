@@ -3,26 +3,33 @@ using Microsoft.EntityFrameworkCore;
 using TransactionManagement.Application.Abstractions.Persistence;
 using TransactionManagement.Application.Dtos.Lookups;
 
-namespace TransactionManagement.Application.Lookups.Queries.GetProductLookup;
+namespace TransactionManagement.Application.Lookups.Queries.GetProductsByIds;
 
-public sealed class GetProductLookupQueryHandler
-    : IRequestHandler<GetProductLookupQuery, IReadOnlyCollection<ProductLookupDto>>
+public sealed class GetProductsByIdsQueryHandler
+    : IRequestHandler<GetProductsByIdsQuery, IReadOnlyCollection<ProductLookupDto>>
 {
     private readonly IProductRepository _productRepository;
 
-    public GetProductLookupQueryHandler(IProductRepository productRepository)
+    public GetProductsByIdsQueryHandler(IProductRepository productRepository)
     {
         _productRepository = productRepository;
     }
 
     public async Task<IReadOnlyCollection<ProductLookupDto>> Handle(
-        GetProductLookupQuery request,
-        CancellationToken cancellationToken) =>
-        await _productRepository
+        GetProductsByIdsQuery request,
+        CancellationToken cancellationToken)
+    {
+        var ids = request.ProductIds.Where(id => id > 0).Distinct().ToList();
+
+        if (ids.Count == 0)
+        {
+            return [];
+        }
+
+        return await _productRepository
             .Query()
             .AsNoTracking()
-            .Where(product => product.IsActive)
-            .OrderBy(product => product.Name)
+            .Where(product => ids.Contains(product.Id))
             .Select(product => new ProductLookupDto(
                 product.Id,
                 product.Code,
@@ -30,4 +37,5 @@ public sealed class GetProductLookupQueryHandler
                 product.UnitOfMeasure,
                 product.DefaultUnitPrice))
             .ToListAsync(cancellationToken);
+    }
 }

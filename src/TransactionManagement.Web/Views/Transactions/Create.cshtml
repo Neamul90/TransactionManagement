@@ -28,39 +28,38 @@
             <div class="panel">
                 <div class="panel__body">
                     <div class="row g-3">
-                        <div class="col-md-5">
+                        <div class="col-md-4">
                             <label asp-for="BusinessPartnerId" class="form-label"></label>
-                            <select asp-for="BusinessPartnerId" class="form-select">
-                                <option value="">-- select customer or supplier --</option>
-                                @foreach (var partner in Model.BusinessPartners)
+                            @* Only the selected option is rendered; the rest arrive from the
+                               lookup endpoint as the user types. *@
+                            <select asp-for="BusinessPartnerId"
+                                    class="form-select"
+                                    data-select2-url="@Url.Action("BusinessPartners", "Lookups")"
+                                    data-select2-placeholder="Search customer or supplier...">
+                                <option value=""></option>
+                                @if (Model.BusinessPartnerId > 0 && !string.IsNullOrEmpty(Model.BusinessPartnerDisplayText))
                                 {
-                                    <option value="@partner.Id">@partner.DisplayText</option>
+                                    <option value="@Model.BusinessPartnerId" selected>@Model.BusinessPartnerDisplayText</option>
                                 }
                             </select>
                             <span asp-validation-for="BusinessPartnerId" class="text-danger"></span>
                         </div>
 
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label asp-for="TransactionDate" class="form-label"></label>
                             <input asp-for="TransactionDate" type="date" class="form-control" />
                             <span asp-validation-for="TransactionDate" class="text-danger"></span>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label">Transaction No.</label>
                             <input class="form-control" value="Generated on save" disabled />
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label asp-for="Reference" class="form-label"></label>
                             <input asp-for="Reference" class="form-control" />
                             <span asp-validation-for="Reference" class="text-danger"></span>
-                        </div>
-
-                        <div class="col-md-8">
-                            <label asp-for="Remarks" class="form-label"></label>
-                            <input asp-for="Remarks" class="form-control" />
-                            <span asp-validation-for="Remarks" class="text-danger"></span>
                         </div>
 
                         <div class="col-12">
@@ -71,15 +70,34 @@
                                        id="product-search"
                                        class="form-control invoice-search__input"
                                        autocomplete="off"
-                                       placeholder="Search by product name or SKU to add a detail line..." />
-                                <ul class="invoice-search__results" id="product-search-results" hidden></ul>
+                                       placeholder="Search by product name or SKU to add a detail line..."
+                                       data-product-search-url="@Url.Action("Products", "Lookups")"
+                                       role="combobox"
+                                       aria-autocomplete="list"
+                                       aria-expanded="false"
+                                       aria-controls="product-search-results" />
+                                <ul class="invoice-search__results"
+                                    id="product-search-results"
+                                    role="listbox"
+                                    aria-label="Product suggestions"
+                                    hidden></ul>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <partial name="_DetailGrid" model="@(new DetailGridViewModel { Details = Model.Details, Products = Model.Products })" />
+            <partial name="_DetailGrid" model="@(new DetailGridViewModel { Details = Model.Details })" />
+
+            <div class="panel">
+                <div class="panel__header"><i class="bi bi-chat-left-text"></i> Remarks</div>
+                <div class="panel__body">
+                    <label asp-for="Remarks" class="form-label visually-hidden"></label>
+                    <textarea asp-for="Remarks" class="form-control" rows="3"
+                              placeholder="Any note that should travel with this transaction..."></textarea>
+                    <span asp-validation-for="Remarks" class="text-danger"></span>
+                </div>
+            </div>
         </div>
 
         <aside class="invoice-layout__aside">
@@ -137,8 +155,10 @@
     </div>
 
     <div class="action-bar__buttons">
-        <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
-        <button type="submit" form="transaction-form" class="btn btn-primary">
+        <a class="btn-action btn-action--cancel" asp-action="Index">
+            <i class="bi bi-x-lg"></i> Cancel
+        </a>
+        <button type="submit" form="transaction-form" class="btn-action btn-action--save">
             <i class="bi bi-check2-circle"></i> Save Transaction
         </button>
     </div>

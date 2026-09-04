@@ -1,4 +1,3 @@
-using TransactionManagement.Application.Dtos.Lookups;
 using TransactionManagement.Application.Dtos.Transactions;
 using TransactionManagement.Application.Transactions.Commands.CreateTransaction;
 using TransactionManagement.Application.Transactions.Commands.UpdateTransaction;
@@ -48,10 +47,7 @@ public static class TransactionMappings
                     detail.IsActive))
                 .ToList());
 
-    public static TransactionEditViewModel ToEditViewModel(
-        this TransactionDetailsDto transaction,
-        IReadOnlyCollection<BusinessPartnerLookupDto> businessPartners,
-        IReadOnlyCollection<ProductLookupDto> products) =>
+    public static TransactionEditViewModel ToEditViewModel(this TransactionDetailsDto transaction) =>
         new()
         {
             Id = transaction.Id,
@@ -61,8 +57,6 @@ public static class TransactionMappings
             Reference = transaction.Reference,
             Remarks = transaction.Remarks,
             RowVersion = RowVersionToken.ToToken(transaction.RowVersion),
-            BusinessPartners = businessPartners,
-            Products = products,
             Details = transaction.Details
                 .Select(detail => new TransactionDetailRowViewModel
                 {

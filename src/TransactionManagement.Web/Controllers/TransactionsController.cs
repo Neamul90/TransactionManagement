@@ -1,8 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using TransactionManagement.Application.Dtos.Lookups;
-using TransactionManagement.Application.Lookups.Queries.GetBusinessPartnerLookup;
-using TransactionManagement.Application.Lookups.Queries.GetProductLookup;
+using TransactionManagement.Application.Lookups.Queries.GetBusinessPartnerById;
+using TransactionManagement.Application.Lookups.Queries.GetProductsByIds;
 using TransactionManagement.Application.Transactions.Commands.CreateTransaction;
 using TransactionManagement.Application.Transactions.Commands.DeleteTransaction;
 using TransactionManagement.Application.Transactions.Commands.UpdateTransaction;
@@ -64,20 +63,11 @@ public sealed class TransactionsController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Create(CancellationToken cancellationToken)
-    {
-        var (businessPartners, products) = await LoadLookupsAsync(cancellationToken);
-
-        var viewModel = new TransactionCreateViewModel
-        {
-            TransactionDate = DateTime.Today,
-            BusinessPartners = businessPartners,
-            Products = products,
-            Details = [new TransactionDetailRowViewModel { DetailDate = DateTime.Today }]
-        };
-
-        return View(viewModel);
-    }
+    public IActionResult Create() =>
+        // The grid opens empty: lines are added from the product search, which is both faster than
+        // filling a blank row and impossible to submit half-completed by accident. No catalogue is
+        // loaded here either -- the pickers query the lookup endpoint as the user types.
+        View(new TransactionCreateViewModel { TransactionDate = DateTime.Today, Details = [] });
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -101,7 +91,9 @@ public sealed class TransactionsController : Controller
             }
         }
 
-        await RepopulateLookupsAsync(viewModel, cancellationToken);
+        viewModel.BusinessPartnerDisplayText =
+            await ResolveBusinessPartnerTextAsync(viewModel.BusinessPartnerId, cancellationToken);
+        await ResolveProductTextAsync(viewModel.Details, cancellationToken);
 
         return View(viewModel);
     }
@@ -116,9 +108,11 @@ public sealed class TransactionsController : Controller
             return NotFound();
         }
 
-        var (businessPartners, products) = await LoadLookupsAsync(cancellationToken);
+        var viewModel = transaction.ToEditViewModel();
+        viewModel.BusinessPartnerDisplayText =
+            await ResolveBusinessPartnerTextAsync(viewModel.BusinessPartnerId, cancellationToken);
 
-        return View(transaction.ToEditViewModel(businessPartners, products));
+        return View(viewModel);
     }
 
     [HttpPost]
@@ -150,7 +144,9 @@ public sealed class TransactionsController : Controller
             }
         }
 
-        await RepopulateLookupsAsync(viewModel, cancellationToken);
+        viewModel.BusinessPartnerDisplayText =
+            await ResolveBusinessPartnerTextAsync(viewModel.BusinessPartnerId, cancellationToken);
+        await ResolveProductTextAsync(viewModel.Details, cancellationToken);
 
         return View(viewModel);
     }
@@ -202,33 +198,51 @@ public sealed class TransactionsController : Controller
         return File(renderedReport.Content, renderedReport.ContentType, renderedReport.FileName);
     }
 
-    private async Task<(IReadOnlyCollection<BusinessPartnerLookupDto> BusinessPartners,
-        IReadOnlyCollection<ProductLookupDto> Products)> LoadLookupsAsync(
+    /// <summary>
+    /// A redisplayed form carries identifiers, not names. These two resolve just the labels the
+    /// screen needs — one partner and the products actually on the grid — instead of reloading a
+    /// catalogue the page never shows.
+    /// </summary>
+    private async Task<string> ResolveBusinessPartnerTextAsync(
+        int businessPartnerId,
         CancellationToken cancellationToken)
     {
-        var businessPartners = await _sender.Send(new GetBusinessPartnerLookupQuery(), cancellationToken);
-        var products = await _sender.Send(new GetProductLookupQuery(), cancellationToken);
+        if (businessPartnerId <= 0)
+        {
+            return string.Empty;
+        }
 
-        return (businessPartners, products);
+        var partner = await _sender.Send(
+            new GetBusinessPartnerByIdQuery(businessPartnerId),
+            cancellationToken);
+
+        return partner?.DisplayText ?? string.Empty;
     }
 
-    private async Task RepopulateLookupsAsync(
-        TransactionCreateViewModel viewModel,
+    private async Task ResolveProductTextAsync(
+        IReadOnlyCollection<TransactionDetailRowViewModel> details,
         CancellationToken cancellationToken)
     {
-        var (businessPartners, products) = await LoadLookupsAsync(cancellationToken);
+        var productIds = details
+            .Select(detail => detail.ProductId)
+            .Where(productId => productId > 0)
+            .Distinct()
+            .ToList();
 
-        viewModel.BusinessPartners = businessPartners;
-        viewModel.Products = products;
-    }
+        if (productIds.Count == 0)
+        {
+            return;
+        }
 
-    private async Task RepopulateLookupsAsync(
-        TransactionEditViewModel viewModel,
-        CancellationToken cancellationToken)
-    {
-        var (businessPartners, products) = await LoadLookupsAsync(cancellationToken);
+        var products = await _sender.Send(new GetProductsByIdsQuery(productIds), cancellationToken);
+        var displayTextById = products.ToDictionary(product => product.Id, product => product.DisplayText);
 
-        viewModel.BusinessPartners = businessPartners;
-        viewModel.Products = products;
+        foreach (var detail in details)
+        {
+            if (displayTextById.TryGetValue(detail.ProductId, out var displayText))
+            {
+                detail.ProductDisplayText = displayText;
+            }
+        }
     }
 }
