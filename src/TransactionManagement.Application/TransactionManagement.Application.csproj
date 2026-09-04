@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace>TransactionManagement.Application</RootNamespace>
+    <AssemblyName>TransactionManagement.Application</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TransactionManagement.Domain\TransactionManagement.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="$(MediatRVersion)" />
+    <PackageReference Include="FluentValidation" Version="$(FluentValidationVersion)" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="$(FluentValidationVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
+
+    <!--
+      EF Core is referenced here only for its asynchronous LINQ operators
+      (AsNoTracking, ToListAsync, CountAsync, FirstOrDefaultAsync) used by read-side query
+      handlers over IQueryable. No DbContext, provider or migration type is referenced.
+      This is a deliberate, documented trade-off: see README section 18 (Assumptions).
+    -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="$(EfCoreVersion)" />
+  </ItemGroup>
+
+</Project>

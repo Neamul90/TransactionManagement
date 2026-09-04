@@ -1,0 +1,150 @@
+@model TransactionCreateViewModel
+@{
+    ViewData["Title"] = "New Transaction";
+    ViewData["ContentCssClass"] = "app-content--with-actionbar";
+}
+
+<div class="page-header">
+    <span class="page-header__icon"><i class="bi bi-cart-plus"></i></span>
+    <div>
+        <h1 class="page-header__title">Add Transaction</h1>
+        <div class="page-header__breadcrumb">
+            <a asp-action="Index">Dashboard</a> /
+            <a asp-action="Index">Transactions</a> / Add Transaction
+        </div>
+    </div>
+    <div class="page-header__actions">
+        <a class="btn-header" asp-action="Index"><i class="bi bi-list-ul"></i> Transaction List</a>
+    </div>
+</div>
+
+<form method="post" asp-action="Create" id="transaction-form">
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+
+    <div class="invoice-layout">
+        <div class="invoice-layout__main">
+            <div class="panel">
+                <div class="panel__body">
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <label asp-for="BusinessPartnerId" class="form-label"></label>
+                            <select asp-for="BusinessPartnerId" class="form-select">
+                                <option value="">-- select customer or supplier --</option>
+                                @foreach (var partner in Model.BusinessPartners)
+                                {
+                                    <option value="@partner.Id">@partner.DisplayText</option>
+                                }
+                            </select>
+                            <span asp-validation-for="BusinessPartnerId" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label asp-for="TransactionDate" class="form-label"></label>
+                            <input asp-for="TransactionDate" type="date" class="form-control" />
+                            <span asp-validation-for="TransactionDate" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Transaction No.</label>
+                            <input class="form-control" value="Generated on save" disabled />
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="Reference" class="form-label"></label>
+                            <input asp-for="Reference" class="form-control" />
+                            <span asp-validation-for="Reference" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-8">
+                            <label asp-for="Remarks" class="form-label"></label>
+                            <input asp-for="Remarks" class="form-control" />
+                            <span asp-validation-for="Remarks" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="invoice-search">
+                                <i class="bi bi-search invoice-search__icon"></i>
+                                <label class="visually-hidden" for="product-search">Add a product</label>
+                                <input type="text"
+                                       id="product-search"
+                                       class="form-control invoice-search__input"
+                                       autocomplete="off"
+                                       placeholder="Search by product name or SKU to add a detail line..." />
+                                <ul class="invoice-search__results" id="product-search-results" hidden></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <partial name="_DetailGrid" model="@(new DetailGridViewModel { Details = Model.Details, Products = Model.Products })" />
+        </div>
+
+        <aside class="invoice-layout__aside">
+            <div class="panel summary-panel">
+                <div class="panel__header"><i class="bi bi-calculator"></i> Summary</div>
+                <div class="panel__body">
+                    <div class="summary-row">
+                        <span class="summary-row__label">Detail lines</span>
+                        <span class="summary-row__value" data-total-lines>0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-row__label">Active lines</span>
+                        <span class="summary-row__value" data-active-lines>0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-row__label">Total quantity</span>
+                        <span class="summary-row__value" data-total-quantity>0.000</span>
+                    </div>
+                    <div class="summary-total">
+                        <span>Total Amount</span>
+                        <span class="summary-total__value" data-total-amount>0.00</span>
+                    </div>
+                    <p class="text-muted-sm mb-0">
+                        Totals cover active lines only and are recalculated on the server when you save.
+                    </p>
+                </div>
+            </div>
+        </aside>
+    </div>
+</form>
+
+<div class="action-bar">
+    <div class="action-bar__stats">
+        <div class="stat-chip">
+            <span class="stat-chip__icon"><i class="bi bi-box-seam"></i></span>
+            <span>
+                <span class="stat-chip__label">Total Items</span>
+                <span class="stat-chip__value" data-total-lines>0</span>
+            </span>
+        </div>
+        <div class="stat-chip">
+            <span class="stat-chip__icon stat-chip__icon--warning"><i class="bi bi-bar-chart"></i></span>
+            <span>
+                <span class="stat-chip__label">Total Quantity</span>
+                <span class="stat-chip__value" data-total-quantity>0.000</span>
+            </span>
+        </div>
+        <div class="stat-chip">
+            <span class="stat-chip__icon stat-chip__icon--success"><i class="bi bi-cash-stack"></i></span>
+            <span>
+                <span class="stat-chip__label">Grand Total</span>
+                <span class="stat-chip__value" data-total-amount>0.00</span>
+            </span>
+        </div>
+    </div>
+
+    <div class="action-bar__buttons">
+        <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+        <button type="submit" form="transaction-form" class="btn btn-primary">
+            <i class="bi bi-check2-circle"></i> Save Transaction
+        </button>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/transaction-details.js" asp-append-version="true"></script>
+}

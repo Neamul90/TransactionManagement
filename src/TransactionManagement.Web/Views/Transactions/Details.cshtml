@@ -1,0 +1,195 @@
+@model TransactionDetailsViewModel
+@inject IOptions<CompanySettings> CompanyOptions
+@{
+    var transaction = Model.Transaction;
+    var company = CompanyOptions.Value;
+    var currency = company.CurrencySymbol;
+    var partnerLabel = transaction.PartnerType == PartnerType.Customer ? "Bill To" : "Supplier";
+
+    ViewData["Title"] = $"Transaction {transaction.TransactionNumber}";
+}
+
+<div class="page-header d-print-none">
+    <span class="page-header__icon"><i class="bi bi-receipt"></i></span>
+    <div>
+        <h1 class="page-header__title">@transaction.TransactionNumber</h1>
+        <div class="page-header__breadcrumb">
+            <a asp-action="Index">Dashboard</a> /
+            <a asp-action="Index">Transactions</a> / Details
+        </div>
+    </div>
+    <div class="page-header__actions">
+        <a class="btn-header" asp-action="Index"><i class="bi bi-arrow-left"></i> Back</a>
+
+        <button type="button" class="btn-header" data-print-trigger>
+            <i class="bi bi-printer"></i> Print
+        </button>
+
+        <a class="btn-header"
+           asp-action="Report"
+           asp-route-id="@transaction.Id"
+           asp-route-format="@((int)TransactionManagement.Web.Reporting.ReportFormat.Pdf)"
+           target="_blank"
+           rel="noopener">
+            <i class="bi bi-file-earmark-pdf"></i> PDF
+        </a>
+
+        <a class="btn-header"
+           asp-action="Report"
+           asp-route-id="@transaction.Id"
+           asp-route-format="@((int)TransactionManagement.Web.Reporting.ReportFormat.Excel)">
+            <i class="bi bi-file-earmark-spreadsheet"></i> Excel
+        </a>
+
+        <form method="post"
+              asp-action="Delete"
+              asp-route-id="@transaction.Id"
+              data-confirm="Delete this transaction and all of its detail lines?">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="rowVersion" value="@Model.RowVersionToken" />
+            <button type="submit" class="btn-header"><i class="bi bi-trash"></i> Delete</button>
+        </form>
+
+        <a class="btn-header btn-header--solid" asp-action="Edit" asp-route-id="@transaction.Id">
+            <i class="bi bi-pencil-square"></i> Edit
+        </a>
+    </div>
+</div>
+
+<article class="invoice-doc" id="invoice-document">
+
+    @* ---------- Letterhead ---------- *@
+    <header class="invoice-doc__masthead">
+        <div class="invoice-doc__brand">
+            @if (company.HasLogo)
+            {
+                <img class="invoice-doc__logo" src="@company.LogoPath" alt="@company.Name logo" />
+            }
+            <div class="invoice-doc__identity">
+                <h2 class="invoice-doc__company">@company.Name</h2>
+                @if (!string.IsNullOrWhiteSpace(company.Tagline))
+                {
+                    <p class="invoice-doc__tagline">@company.Tagline</p>
+                }
+                <address class="invoice-doc__address">
+                    @foreach (var line in company.AddressLines)
+                    {
+                        <span>@line</span>
+                    }
+                    @foreach (var line in company.ContactLines)
+                    {
+                        <span>@line</span>
+                    }
+                </address>
+            </div>
+        </div>
+
+        <div class="invoice-doc__title-block">
+            <p class="invoice-doc__doctype">Transaction</p>
+            <dl class="invoice-doc__meta">
+                <dt>No.</dt>
+                <dd class="cell-code">@transaction.TransactionNumber</dd>
+
+                <dt>Date</dt>
+                <dd>@transaction.TransactionDate.ToString("dd MMM yyyy")</dd>
+
+                <dt>Reference</dt>
+                <dd>@(string.IsNullOrWhiteSpace(transaction.Reference) ? "—" : transaction.Reference)</dd>
+            </dl>
+        </div>
+    </header>
+
+    @* ---------- Parties ---------- *@
+    <section class="invoice-doc__parties">
+        <div class="invoice-doc__party">
+            <p class="invoice-doc__party-label">@partnerLabel</p>
+            <p class="invoice-doc__party-name">@transaction.BusinessPartnerName</p>
+            <p class="invoice-doc__party-meta">
+                <span class="badge-soft @(transaction.PartnerType == PartnerType.Customer ? "badge-soft--customer" : "badge-soft--supplier")">
+                    @transaction.PartnerType
+                </span>
+            </p>
+        </div>
+    </section>
+
+    @* ---------- Line items ---------- *@
+    <table class="data-table invoice-doc__lines">
+        <thead>
+            <tr>
+                <th class="col-center">#</th>
+                <th>Product</th>
+                <th>Date</th>
+                <th>Description</th>
+                <th class="col-numeric">Quantity</th>
+                <th class="col-numeric">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{ var lineNumber = 1; }
+            @foreach (var detail in transaction.Details)
+            {
+                <tr class="@(detail.IsActive ? null : "row-inactive")">
+                    <td class="col-center" data-label="#">@(lineNumber++)</td>
+                    <td data-label="Product">
+                        <span class="invoice-doc__product-name">@detail.ProductName</span>
+                        <span class="cell-code">@detail.ProductCode</span>
+                        @if (!detail.IsActive)
+                        {
+                            <span class="invoice-doc__excluded">Excluded from totals</span>
+                        }
+                    </td>
+                    <td data-label="Date">@detail.DetailDate.ToString("dd MMM yyyy")</td>
+                    <td data-label="Description">@(string.IsNullOrWhiteSpace(detail.Description) ? "—" : detail.Description)</td>
+                    <td class="col-numeric" data-label="Quantity">
+                        @detail.Quantity.ToString("N3") <span class="invoice-doc__unit">@detail.UnitOfMeasure</span>
+                    </td>
+                    <td class="col-numeric" data-label="Amount">@currency@detail.Amount.ToString("N2")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @* ---------- Totals ---------- *@
+    <section class="invoice-doc__closing">
+        <div class="invoice-doc__notes">
+            <p class="invoice-doc__party-label">Remarks</p>
+            <p class="invoice-doc__remarks">
+                @(string.IsNullOrWhiteSpace(transaction.Remarks) ? "—" : transaction.Remarks)
+            </p>
+
+            <p class="invoice-doc__party-label">Amount in words</p>
+            <p class="invoice-doc__words">
+                @AmountInWords.Convert(transaction.TotalAmount, company.CurrencyName) only
+            </p>
+        </div>
+
+        <div class="invoice-doc__totals">
+            <div class="summary-row">
+                <span class="summary-row__label">Total quantity</span>
+                <span class="summary-row__value">@transaction.TotalQuantity.ToString("N3")</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-row__label">Active lines</span>
+                <span class="summary-row__value">@Model.ActiveDetailCount</span>
+            </div>
+            <div class="summary-total">
+                <span>Total Amount</span>
+                <span class="summary-total__value">@currency@transaction.TotalAmount.ToString("N2")</span>
+            </div>
+            <p class="text-muted-sm mb-0">Totals cover active detail lines only.</p>
+        </div>
+    </section>
+
+    @* ---------- Signatures ---------- *@
+    <footer class="invoice-doc__footer">
+        <div class="invoice-doc__signatures">
+            <div class="invoice-doc__signature">Prepared by</div>
+            <div class="invoice-doc__signature">Checked by</div>
+            <div class="invoice-doc__signature">Authorised signature</div>
+        </div>
+        <p class="invoice-doc__legal">
+            This is a computer-generated document. @company.Name &mdash; printed on
+            @DateTime.Now.ToString("dd MMM yyyy HH:mm").
+        </p>
+    </footer>
+</article>

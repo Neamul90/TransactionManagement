@@ -1,0 +1,90 @@
+@model TransactionListViewModel
+@*
+    Server-side pagination. Only a window of five page numbers is rendered, plus an ellipsis and
+    the last page, so a 1,105-page result set still produces a short, stable control.
+
+    Note: the local below must not be called "page". Razor reserves that word as a directive, so
+    an expression like "page.PageNumber" written with a leading @ is parsed as the directive
+    rather than as a member access, and the file fails to compile.
+*@
+@{
+    var result = Model.Page;
+    var windowStart = Math.Max(1, result.PageNumber - 2);
+    var windowEnd = Math.Min(result.TotalPages, windowStart + 4);
+    windowStart = Math.Max(1, windowEnd - 4);
+}
+
+<div class="table-footer">
+    <div class="table-footer__summary">
+        @if (result.TotalCount == 0)
+        {
+            <span>Showing 0 to 0 of 0 entries</span>
+        }
+        else
+        {
+            <span>
+                Showing @result.FirstItemOnPage.ToString("N0") to @result.LastItemOnPage.ToString("N0")
+                of @result.TotalCount.ToString("N0") entries
+            </span>
+        }
+    </div>
+
+    @if (result.TotalPages > 1)
+    {
+        <nav aria-label="Pagination">
+            <ul class="pager">
+                <li class="pager__item @(result.HasPreviousPage ? null : "pager__item--disabled")">
+                    <a class="pager__link"
+                       asp-action="Index"
+                       asp-route-PageNumber="@(result.PageNumber - 1)"
+                       asp-route-PageSize="@result.PageSize"
+                       asp-route-SearchTerm="@Model.SearchTerm"
+                       asp-route-SortBy="@Model.SortBy"
+                       asp-route-SortDescending="@Model.SortDescending">Previous</a>
+                </li>
+
+                @for (var pageNumber = windowStart; pageNumber <= windowEnd; pageNumber++)
+                {
+                    <li class="pager__item pager__item--number @(pageNumber == result.PageNumber ? "pager__item--active" : null)">
+                        <a class="pager__link"
+                           asp-action="Index"
+                           asp-route-PageNumber="@pageNumber"
+                           asp-route-PageSize="@result.PageSize"
+                           asp-route-SearchTerm="@Model.SearchTerm"
+                           asp-route-SortBy="@Model.SortBy"
+                           asp-route-SortDescending="@Model.SortDescending"
+                           aria-current="@(pageNumber == result.PageNumber ? "page" : null)">@pageNumber</a>
+                    </li>
+                }
+
+                @if (windowEnd < result.TotalPages)
+                {
+                    @if (windowEnd < result.TotalPages - 1)
+                    {
+                        <li class="pager__item pager__item--gap"><span class="pager__link">&hellip;</span></li>
+                    }
+
+                    <li class="pager__item pager__item--number">
+                        <a class="pager__link"
+                           asp-action="Index"
+                           asp-route-PageNumber="@result.TotalPages"
+                           asp-route-PageSize="@result.PageSize"
+                           asp-route-SearchTerm="@Model.SearchTerm"
+                           asp-route-SortBy="@Model.SortBy"
+                           asp-route-SortDescending="@Model.SortDescending">@result.TotalPages</a>
+                    </li>
+                }
+
+                <li class="pager__item @(result.HasNextPage ? null : "pager__item--disabled")">
+                    <a class="pager__link"
+                       asp-action="Index"
+                       asp-route-PageNumber="@(result.PageNumber + 1)"
+                       asp-route-PageSize="@result.PageSize"
+                       asp-route-SearchTerm="@Model.SearchTerm"
+                       asp-route-SortBy="@Model.SortBy"
+                       asp-route-SortDescending="@Model.SortDescending">Next</a>
+                </li>
+            </ul>
+        </nav>
+    }
+</div>

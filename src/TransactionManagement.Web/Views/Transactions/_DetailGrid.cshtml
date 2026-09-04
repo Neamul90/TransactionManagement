@@ -1,0 +1,159 @@
+@model DetailGridViewModel
+@*
+    Dynamic collection binding.
+
+    Each row emits a hidden "Details.Index" field carrying an opaque key, and every input for
+    that row is named Details[key].Field. ASP.NET Core's model binder uses Details.Index to
+    discover the keys, so rows can be added and removed in any order without renumbering the
+    remaining rows -- which is what makes "delete the middle row and save" work reliably.
+*@
+
+<div class="panel">
+    <div class="panel__header">
+        <i class="bi bi-list-ol"></i>
+        <span>Transaction Details</span>
+        <span class="panel__header-actions">
+            <button type="button" class="btn btn-sm btn-primary" id="add-detail-row">
+                <i class="bi bi-plus-lg"></i> Add Detail
+            </button>
+        </span>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="detail-grid" id="detail-grid">
+            <thead>
+                <tr>
+                    <th class="detail-grid__col-product">Product</th>
+                    <th class="detail-grid__col-date">Date</th>
+                    <th class="detail-grid__col-description">Description</th>
+                    <th class="detail-grid__col-quantity col-numeric">Quantity</th>
+                    <th class="detail-grid__col-amount col-numeric">Amount</th>
+                    <th class="detail-grid__col-active col-center">Active</th>
+                    <th class="detail-grid__col-action"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var detail in Model.Details)
+                {
+                    var key = Guid.NewGuid().ToString("N");
+
+                    <tr class="detail-row">
+                        <td data-label="Product">
+                            <input type="hidden" name="Details.Index" value="@key" />
+                            <input type="hidden" name="Details[@key].Id" value="@detail.Id" />
+                            <select name="Details[@key].ProductId" class="form-select form-select-sm" required>
+                                <option value="">-- select product --</option>
+                                @foreach (var product in Model.Products)
+                                {
+                                    <option value="@product.Id" selected="@(product.Id == detail.ProductId)">@product.DisplayText</option>
+                                }
+                            </select>
+                        </td>
+                        <td data-label="Date">
+                            <input type="date"
+                                   name="Details[@key].DetailDate"
+                                   value="@detail.DetailDate.ToString("yyyy-MM-dd")"
+                                   class="form-control form-control-sm"
+                                   required />
+                        </td>
+                        <td data-label="Description">
+                            <input type="text"
+                                   name="Details[@key].Description"
+                                   value="@detail.Description"
+                                   maxlength="250"
+                                   class="form-control form-control-sm" />
+                        </td>
+                        <td data-label="Quantity">
+                            <input type="number"
+                                   name="Details[@key].Quantity"
+                                   value="@detail.Quantity.ToString("0.###")"
+                                   step="0.001"
+                                   min="0.001"
+                                   class="form-control form-control-sm text-end detail-quantity"
+                                   required />
+                        </td>
+                        <td data-label="Amount">
+                            <input type="number"
+                                   name="Details[@key].Amount"
+                                   value="@detail.Amount.ToString("0.00")"
+                                   step="0.01"
+                                   min="0"
+                                   class="form-control form-control-sm text-end detail-amount"
+                                   required />
+                        </td>
+                        <td class="col-center" data-label="Active">
+                            @* The hidden companion makes an unchecked box post "false" instead of nothing. *@
+                            <input type="checkbox"
+                                   name="Details[@key].IsActive"
+                                   value="true"
+                                   class="form-check-input detail-active"
+                                   checked="@detail.IsActive" />
+                            <input type="hidden" name="Details[@key].IsActive" value="false" />
+                        </td>
+                        <td class="col-center" data-label="Remove">
+                            <button type="button"
+                                    class="btn-icon btn-icon--danger remove-detail-row"
+                                    title="Remove this line">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="3" class="col-numeric">Totals (active lines)</th>
+                    <th class="col-numeric" data-label="Total quantity" data-total-quantity>0.000</th>
+                    <th class="col-numeric" data-label="Total amount" data-total-amount>0.00</th>
+                    <th colspan="2"></th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="panel__footer">
+        At least one active detail line is required. Totals shown here are a convenience only &mdash;
+        the server recalculates them from the submitted lines.
+    </div>
+</div>
+
+@* Row template used by the browser when the user adds a line. __KEY__ is replaced with a fresh key. *@
+<template id="detail-row-template">
+    <tr class="detail-row">
+        <td data-label="Product">
+            <input type="hidden" name="Details.Index" value="__KEY__" />
+            <input type="hidden" name="Details[__KEY__].Id" value="0" />
+            <select name="Details[__KEY__].ProductId" class="form-select form-select-sm" required>
+                <option value="">-- select product --</option>
+                @foreach (var product in Model.Products)
+                {
+                    <option value="@product.Id">@product.DisplayText</option>
+                }
+            </select>
+        </td>
+        <td data-label="Date">
+            <input type="date" name="Details[__KEY__].DetailDate" class="form-control form-control-sm" required />
+        </td>
+        <td data-label="Description">
+            <input type="text" name="Details[__KEY__].Description" maxlength="250" class="form-control form-control-sm" />
+        </td>
+        <td data-label="Quantity">
+            <input type="number" name="Details[__KEY__].Quantity" value="1" step="0.001" min="0.001"
+                   class="form-control form-control-sm text-end detail-quantity" required />
+        </td>
+        <td data-label="Amount">
+            <input type="number" name="Details[__KEY__].Amount" value="0.00" step="0.01" min="0"
+                   class="form-control form-control-sm text-end detail-amount" required />
+        </td>
+        <td class="col-center" data-label="Active">
+            <input type="checkbox" name="Details[__KEY__].IsActive" value="true"
+                   class="form-check-input detail-active" checked />
+            <input type="hidden" name="Details[__KEY__].IsActive" value="false" />
+        </td>
+        <td class="col-center" data-label="Remove">
+            <button type="button" class="btn-icon btn-icon--danger remove-detail-row" title="Remove this line">
+                <i class="bi bi-trash"></i>
+            </button>
+        </td>
+    </tr>
+</template>

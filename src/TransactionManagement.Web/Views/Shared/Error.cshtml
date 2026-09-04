@@ -1,0 +1,36 @@
+@model ErrorViewModel
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="panel error-card">
+    <div class="panel__header">
+        <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+        <span>@Model.Title</span>
+        <span class="panel__header-actions text-muted-sm">HTTP @Model.StatusCode</span>
+    </div>
+    <div class="panel__body">
+        <p class="mb-3">@Model.Message</p>
+        <a class="btn btn-primary" asp-controller="Transactions" asp-action="Index">
+            <i class="bi bi-arrow-left"></i> Back to transaction list
+        </a>
+    </div>
+
+    @if (Model.ShowDeveloperDetail)
+    {
+        <div class="panel__body border-top">
+            <p class="text-muted-sm">
+                <strong>Development only.</strong> This block is never rendered outside the
+                Development environment.
+            </p>
+            <pre class="error-detail">@Model.DeveloperDetail</pre>
+        </div>
+    }
+
+    @if (Model.ShowRequestId)
+    {
+        <div class="panel__footer">
+            Reference: <code>@Model.RequestId</code> &mdash; quote this if you contact support.
+        </div>
+    }
+</div>

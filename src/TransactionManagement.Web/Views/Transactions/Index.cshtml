@@ -1,0 +1,160 @@
+@model TransactionListViewModel
+@{
+    ViewData["Title"] = "Transactions";
+}
+
+<div class="page-header">
+    <span class="page-header__icon"><i class="bi bi-receipt-cutoff"></i></span>
+    <div>
+        <h1 class="page-header__title">Transactions</h1>
+        <div class="page-header__breadcrumb">
+            <a asp-controller="Transactions" asp-action="Index">Dashboard</a> / Transactions
+        </div>
+    </div>
+    <div class="page-header__actions">
+        <a class="btn-header btn-header--solid" asp-action="Create">
+            <i class="bi bi-plus-lg"></i> New Transaction
+        </a>
+    </div>
+</div>
+
+<div class="panel">
+    @*
+        Length and search controls. These post back to the same action: paging, filtering and
+        sorting all execute in SQL, so the control is a plain form rather than a client-side
+        table plug-in that would have to hold 22,000 rows in the browser to work.
+    *@
+    <form method="get" asp-action="Index" class="table-controls" id="table-controls">
+        <label class="table-controls__group" for="PageSize">
+            <span>Show</span>
+            <select id="PageSize" name="PageSize" class="form-select form-select-sm table-controls__length" data-auto-submit>
+                @foreach (var size in new[] { 10, 25, 50, 100 })
+                {
+                    <option value="@size" selected="@(size == Model.Page.PageSize)">@size</option>
+                }
+            </select>
+            <span>entries</span>
+        </label>
+
+        <label class="table-controls__group" for="SearchTerm">
+            <span>Search:</span>
+            <input type="search"
+                   id="SearchTerm"
+                   name="SearchTerm"
+                   value="@Model.SearchTerm"
+                   maxlength="100"
+                   autocomplete="off"
+                   class="form-control form-control-sm table-controls__search"
+                   data-auto-submit-delayed />
+        </label>
+
+        <input type="hidden" name="SortBy" value="@Model.SortBy" />
+        <input type="hidden" name="SortDescending" value="@Model.SortDescending.ToString().ToLowerInvariant()" />
+
+        @* Keeps Enter submitting the form without showing a button the reference design has not got. *@
+        <button type="submit" class="visually-hidden">Search</button>
+    </form>
+
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>
+                        <a asp-action="Index"
+                           asp-route-SearchTerm="@Model.SearchTerm"
+                           asp-route-PageSize="@Model.Page.PageSize"
+                           asp-route-SortBy="@TransactionSortField.TransactionNumber"
+                           asp-route-SortDescending="@Model.NextSortDescendingFor(TransactionSortField.TransactionNumber)">
+                            Transaction No. <span>@Model.SortIndicatorFor(TransactionSortField.TransactionNumber)</span>
+                        </a>
+                    </th>
+                    <th>
+                        <a asp-action="Index"
+                           asp-route-SearchTerm="@Model.SearchTerm"
+                           asp-route-PageSize="@Model.Page.PageSize"
+                           asp-route-SortBy="@TransactionSortField.TransactionDate"
+                           asp-route-SortDescending="@Model.NextSortDescendingFor(TransactionSortField.TransactionDate)">
+                            Date <span>@Model.SortIndicatorFor(TransactionSortField.TransactionDate)</span>
+                        </a>
+                    </th>
+                    <th>
+                        <a asp-action="Index"
+                           asp-route-SearchTerm="@Model.SearchTerm"
+                           asp-route-PageSize="@Model.Page.PageSize"
+                           asp-route-SortBy="@TransactionSortField.BusinessPartnerName"
+                           asp-route-SortDescending="@Model.NextSortDescendingFor(TransactionSortField.BusinessPartnerName)">
+                            Customer / Supplier <span>@Model.SortIndicatorFor(TransactionSortField.BusinessPartnerName)</span>
+                        </a>
+                    </th>
+                    <th class="col-numeric">Details</th>
+                    <th class="col-numeric">Total Qty</th>
+                    <th class="col-numeric">
+                        <a asp-action="Index"
+                           asp-route-SearchTerm="@Model.SearchTerm"
+                           asp-route-PageSize="@Model.Page.PageSize"
+                           asp-route-SortBy="@TransactionSortField.TotalAmount"
+                           asp-route-SortDescending="@Model.NextSortDescendingFor(TransactionSortField.TotalAmount)">
+                            Total Amount <span>@Model.SortIndicatorFor(TransactionSortField.TotalAmount)</span>
+                        </a>
+                    </th>
+                    <th class="col-actions">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Page.Items.Count == 0)
+                {
+                    <tr>
+                        <td colspan="7" class="data-table__empty" data-label="">
+                            <i class="bi bi-inbox"></i>
+                            <div>No transactions match your search.</div>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var transaction in Model.Page.Items)
+                    {
+                        <tr>
+                            <td class="cell-code" data-label="Transaction No.">@transaction.TransactionNumber</td>
+                            <td data-label="Date">@transaction.TransactionDate.ToString("dd MMM yyyy")</td>
+                            <td data-label="Customer / Supplier">
+                                @transaction.BusinessPartnerName
+                                <span class="badge-soft @(transaction.PartnerType == PartnerType.Customer ? "badge-soft--customer" : "badge-soft--supplier")">
+                                    @transaction.PartnerType
+                                </span>
+                            </td>
+                            <td class="col-numeric" data-label="Details">@transaction.DetailCount</td>
+                            <td class="col-numeric" data-label="Total Qty">@transaction.TotalQuantity.ToString("N3")</td>
+                            <td class="col-numeric" data-label="Total Amount">@transaction.TotalAmount.ToString("N2")</td>
+                            <td class="col-actions" data-label="Actions">
+                                <span class="table-actions">
+                                    <a class="btn-icon" title="View" asp-action="Details" asp-route-id="@transaction.Id">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a class="btn-icon" title="Edit" asp-action="Edit" asp-route-id="@transaction.Id">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <a class="btn-icon"
+                                       title="View / print report"
+                                       asp-action="Report"
+                                       asp-route-id="@transaction.Id"
+                                       asp-route-format="@((int)TransactionManagement.Web.Reporting.ReportFormat.Pdf)"
+                                       target="_blank"
+                                       rel="noopener">
+                                        <i class="bi bi-printer"></i>
+                                    </a>
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <partial name="_Pager" model="Model" />
+</div>
+
+@section Scripts {
+    <script src="~/js/table-controls.js" asp-append-version="true"></script>
+}

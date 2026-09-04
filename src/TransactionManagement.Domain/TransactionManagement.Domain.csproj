@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace>TransactionManagement.Domain</RootNamespace>
+    <AssemblyName>TransactionManagement.Domain</AssemblyName>
+  </PropertyGroup>
+
+  <!--
+    The Domain layer intentionally has NO package references and NO project references.
+    It must not know about EF Core, SQL Server, ASP.NET Core, Razor or RDLC.
+  -->
+
+</Project>

@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace>TransactionManagement.Web</RootNamespace>
+    <AssemblyName>TransactionManagement.Web</AssemblyName>
+    <UserSecretsId>transaction-management-web</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TransactionManagement.Application\TransactionManagement.Application.csproj" />
+    <ProjectReference Include="..\TransactionManagement.Infrastructure\TransactionManagement.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      RDLC rendering.
+
+      ReportViewerCore.NETCore is a recompilation of Microsoft.ReportViewer for .NET Core in which
+      report-expression compilation was moved from CodeDom to Roslyn. That change is the reason it
+      is used here: the older AspNetCore.Reporting package derives its compiler path from the
+      runtime version and looks for a .NET Framework vbc.exe (…\Framework64\v9.0.19\vbc.exe on
+      .NET 9), which does not exist — so no RDLC containing an expression can render through it.
+    -->
+    <PackageReference Include="ReportViewerCore.NETCore" Version="15.1.33" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="$(EfCoreVersion)">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The RDLC definition must sit next to the assembly at run time. -->
+    <None Update="Reports\TransactionReport.rdlc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
