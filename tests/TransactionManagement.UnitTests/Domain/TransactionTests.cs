@@ -1,4 +1,5 @@
 using FluentAssertions;
+using TransactionManagement.Domain.Common;
 using TransactionManagement.Domain.Entities;
 using TransactionManagement.Domain.Exceptions;
 using TransactionManagement.UnitTests.Common;
@@ -86,15 +87,31 @@ public sealed class TransactionTests
     }
 
     [Fact]
-    public void AddDetail_DatedAfterTheTransaction_IsRejected()
+    public void AddDetail_DatedAfterTheTransaction_IsAccepted()
     {
         var transaction = TransactionFactory.CreateNew();
 
         var act = () => transaction.AddDetail(
-            1, TransactionFactory.Today.AddDays(1), "Line", 1m, 10m, true);
+            1, TransactionFactory.Today.AddDays(30), "Line", 1m, 10m, true);
 
-        act.Should().Throw<BusinessRuleViolationException>()
-            .WithMessage("A detail date cannot be later than the transaction date.");
+        // Detail dates are independent of the header date; only excessive backdating is refused.
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void AddDetail_BackdatedBeyondTheAllowedWindow_IsRejected()
+    {
+        var transaction = TransactionFactory.CreateNew();
+
+        var act = () => transaction.AddDetail(
+            1,
+            TransactionFactory.Today.AddDays(-(DomainConstants.Rules.MaxDetailBackdatingDays + 1)),
+            "Line",
+            1m,
+            10m,
+            true);
+
+        act.Should().Throw<BusinessRuleViolationException>();
     }
 
     [Fact]

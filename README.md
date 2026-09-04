@@ -296,8 +296,10 @@ Validation happens in three layers, each with a different job:
 2. **FluentValidation** — runs in `ValidationBehavior` for every command, before the handler.
    Shape, ranges, lengths, "at least one active line", no duplicate line identifiers.
 3. **Domain invariants** — enforced by the aggregate itself and impossible to bypass: quantity > 0,
-   amount ≥ 0, transaction date not in the future, detail date not after the transaction date and
-   not more than 90 days before it, at least one active line, detail ownership.
+   amount ≥ 0, transaction date not in the future, detail date not more than 90 days before the
+   transaction date, at least one active line, detail ownership.
+   A detail line *may* be dated after its transaction: goods are often received or delivered against
+   a document raised earlier, so the two dates are independent.
 
 Validators: `CreateTransactionCommandValidator`, `CreateTransactionDetailCommandValidator`,
 `UpdateTransactionCommandValidator`, `UpdateTransactionDetailCommandValidator`,

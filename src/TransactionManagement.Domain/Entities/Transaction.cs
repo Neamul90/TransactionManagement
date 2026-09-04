@@ -193,8 +193,8 @@ public sealed class Transaction : BaseEntity, IAggregateRoot
             var existing = FindOwnedDetail(submitted.Id);
             submittedExistingIds.Add(existing.Id);
 
-            // Validated even for unchanged lines: the header date may have moved,
-            // which can invalidate a line that was previously acceptable.
+            // Validated even for unchanged lines: moving the header date can invalidate a line
+            // that was acceptable when it was first entered.
             ValidateDetailDate(submitted.DetailDate);
 
             var isUnchanged = existing.HasSameValuesAs(
@@ -295,10 +295,8 @@ public sealed class Transaction : BaseEntity, IAggregateRoot
 
     private void ValidateDetailDate(DateTime detailDate)
     {
-        Guard.Against(
-            detailDate.Date > TransactionDate,
-            "A detail date cannot be later than the transaction date.");
-
+        // A detail line may be dated after its transaction: goods are often received or delivered
+        // against a document raised earlier, so the two dates are deliberately independent.
         Guard.Against(
             detailDate.Date < TransactionDate.AddDays(-DomainConstants.Rules.MaxDetailBackdatingDays),
             $"A detail date cannot precede the transaction date by more than {DomainConstants.Rules.MaxDetailBackdatingDays} days.");
