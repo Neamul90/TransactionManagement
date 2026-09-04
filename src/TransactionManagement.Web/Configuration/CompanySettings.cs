@@ -32,6 +32,9 @@ public sealed class CompanySettings
     /// <summary>Currency name used by the "amount in words" line, for example "Taka".</summary>
     public string CurrencyName { get; init; } = string.Empty;
 
+    /// <summary>Name of the minor unit, for example "Poysha". Only printed when there is one.</summary>
+    public string CurrencyFractionName { get; init; } = string.Empty;
+
     public bool HasLogo => !string.IsNullOrWhiteSpace(LogoPath);
 
     public IEnumerable<string> AddressLines =>

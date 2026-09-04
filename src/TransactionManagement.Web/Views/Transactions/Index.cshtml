@@ -143,6 +143,20 @@
                                        rel="noopener">
                                         <i class="bi bi-printer"></i>
                                     </a>
+
+                                    @* The row carries its own concurrency token, so a delete issued
+                                       from a stale list is refused rather than applied. *@
+                                    <form method="post"
+                                          asp-action="Delete"
+                                          asp-route-id="@transaction.Id"
+                                          data-confirm="Delete @transaction.TransactionNumber and all of its detail lines?">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="rowVersion"
+                                               value="@TransactionManagement.Web.Extensions.RowVersionToken.ToToken(transaction.RowVersion)" />
+                                        <button type="submit" class="btn-icon btn-icon--danger" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
                                 </span>
                             </td>
                         </tr>

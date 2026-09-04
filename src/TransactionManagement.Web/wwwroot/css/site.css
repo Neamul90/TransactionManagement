@@ -640,9 +640,32 @@ body {
     color: var(--tm-muted);
 }
 
+/*
+   Inactive lines are struck through: they stay on the document for reference but take no part in
+   the totals. The rule targets the cells rather than the row, because text-decoration set on a
+   <tr> is not reliably inherited by its cells.
+*/
+.row-inactive td {
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+    text-decoration-color: #9aa4b4;
+}
+
+/* The badge explains the strike-through, so it must not be struck through itself. */
+.row-inactive .invoice-doc__excluded {
+    text-decoration: none;
+}
+
 .table-actions {
     display: inline-flex;
+    align-items: center;
     gap: .3rem;
+}
+
+/* The delete action is a POST form; it must sit in the row like the other icon buttons. */
+.table-actions form {
+    display: inline-flex;
+    margin: 0;
 }
 
 .btn-icon {

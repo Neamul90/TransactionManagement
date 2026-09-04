@@ -7,7 +7,7 @@
         <DataProvider>System.Data.DataSet</DataProvider>
         <ConnectString>/* Local Connection */</ConnectString>
       </ConnectionProperties>
-      <rd:DataSourceID>29d0a5ae-07d9-4b0f-9ad9-caaf51825a0d</rd:DataSourceID>
+      <rd:DataSourceID>7611e933-58af-421e-8cee-59547651c40f</rd:DataSourceID>
     </DataSource>
   </DataSources>
   <DataSets>
@@ -922,6 +922,7 @@
                               <Style>Solid</Style>
                               <Width>1pt</Width>
                             </BottomBorder>
+                            <TextDecoration>=IIf(Fields!IsActive.Value, &quot;None&quot;, &quot;LineThrough&quot;)</TextDecoration>
                             <TextAlign>Center</TextAlign>
                             <VerticalAlign>Top</VerticalAlign>
                             <PaddingLeft>3pt</PaddingLeft>
@@ -981,6 +982,7 @@
                               <Style>Solid</Style>
                               <Width>1pt</Width>
                             </BottomBorder>
+                            <TextDecoration>=IIf(Fields!IsActive.Value, &quot;None&quot;, &quot;LineThrough&quot;)</TextDecoration>
                             <TextAlign>Left</TextAlign>
                             <VerticalAlign>Top</VerticalAlign>
                             <PaddingLeft>3pt</PaddingLeft>
@@ -1025,6 +1027,7 @@
                               <Width>1pt</Width>
                             </BottomBorder>
                             <Format>dd MMM yyyy</Format>
+                            <TextDecoration>=IIf(Fields!IsActive.Value, &quot;None&quot;, &quot;LineThrough&quot;)</TextDecoration>
                             <TextAlign>Left</TextAlign>
                             <VerticalAlign>Top</VerticalAlign>
                             <PaddingLeft>3pt</PaddingLeft>
@@ -1068,6 +1071,7 @@
                               <Style>Solid</Style>
                               <Width>1pt</Width>
                             </BottomBorder>
+                            <TextDecoration>=IIf(Fields!IsActive.Value, &quot;None&quot;, &quot;LineThrough&quot;)</TextDecoration>
                             <TextAlign>Left</TextAlign>
                             <VerticalAlign>Top</VerticalAlign>
                             <PaddingLeft>3pt</PaddingLeft>
@@ -1111,6 +1115,7 @@
                               <Style>Solid</Style>
                               <Width>1pt</Width>
                             </BottomBorder>
+                            <TextDecoration>=IIf(Fields!IsActive.Value, &quot;None&quot;, &quot;LineThrough&quot;)</TextDecoration>
                             <TextAlign>Right</TextAlign>
                             <VerticalAlign>Top</VerticalAlign>
                             <PaddingLeft>3pt</PaddingLeft>
@@ -1154,6 +1159,7 @@
                               <Style>Solid</Style>
                               <Width>1pt</Width>
                             </BottomBorder>
+                            <TextDecoration>=IIf(Fields!IsActive.Value, &quot;None&quot;, &quot;LineThrough&quot;)</TextDecoration>
                             <TextAlign>Right</TextAlign>
                             <VerticalAlign>Top</VerticalAlign>
                             <PaddingLeft>3pt</PaddingLeft>
@@ -2180,5 +2186,5 @@
     </ReportParameter>
   </ReportParameters>
   <rd:ReportUnitType>Inch</rd:ReportUnitType>
-  <rd:ReportID>052441dc-8ff0-4815-8fb3-8907c24e1bf0</rd:ReportID>
+  <rd:ReportID>01e5ff48-0c93-4df3-b855-85974ef77f46</rd:ReportID>
 </Report>

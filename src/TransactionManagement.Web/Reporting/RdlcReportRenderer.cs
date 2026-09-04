@@ -84,8 +84,10 @@ public sealed class RdlcReportRenderer : IRdlcReportRenderer
             Environment.NewLine,
             _companySettings.AddressLines.Concat(_companySettings.ContactLines));
 
-        var amountInWords =
-            $"{AmountInWords.Convert(report.TotalAmount, _companySettings.CurrencyName)} only";
+        var amountInWords = AmountInWords.Convert(
+            report.TotalAmount,
+            _companySettings.CurrencyName,
+            _companySettings.CurrencyFractionName) + " only";
 
         // Wording matched to the details screen. The company name is not followed by a full stop of
         // its own, because names such as "… Ltd." already end in one.

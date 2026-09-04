@@ -155,7 +155,7 @@
 
             <p class="invoice-doc__party-label">Amount in words</p>
             <p class="invoice-doc__words">
-                @AmountInWords.Convert(transaction.TotalAmount, company.CurrencyName) only
+                @AmountInWords.Convert(transaction.TotalAmount, company.CurrencyName, company.CurrencyFractionName) only
             </p>
         </div>
 

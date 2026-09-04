@@ -11,4 +11,5 @@ public sealed record TransactionListItemDto(
     PartnerType PartnerType,
     int DetailCount,
     decimal TotalQuantity,
-    decimal TotalAmount);
+    decimal TotalAmount,
+    byte[] RowVersion);

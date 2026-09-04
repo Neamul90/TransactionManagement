@@ -10,6 +10,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\TransactionManagement.Domain\TransactionManagement.Domain.csproj" />
     <ProjectReference Include="..\..\src\TransactionManagement.Application\TransactionManagement.Application.csproj" />
+    <!-- For the presentation-layer formatters that appear on printed documents. -->
+    <ProjectReference Include="..\..\src\TransactionManagement.Web\TransactionManagement.Web.csproj" />
   </ItemGroup>
 
   <ItemGroup>

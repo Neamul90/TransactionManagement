@@ -60,7 +60,8 @@ public sealed class GetTransactionsQueryHandler
                 transaction.BusinessPartner.PartnerType,
                 transaction.Details.Count,
                 transaction.TotalQuantity,
-                transaction.TotalAmount))
+                transaction.TotalAmount,
+                transaction.RowVersion))
             .ToListAsync(cancellationToken);
 
         return PagedResult<TransactionListItemDto>.Create(items, pageNumber, pageSize, totalCount);
