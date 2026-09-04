@@ -127,7 +127,7 @@
                             <td class="col-numeric" data-label="Total Qty">@transaction.TotalQuantity.ToString("N3")</td>
                             <td class="col-numeric" data-label="Total Amount">@transaction.TotalAmount.ToString("N2")</td>
                             <td class="col-actions" data-label="Actions">
-                                <span class="table-actions">
+                                <div class="table-actions">
                                     <a class="btn-icon" title="View" asp-action="Details" asp-route-id="@transaction.Id">
                                         <i class="bi bi-eye"></i>
                                     </a>
@@ -157,7 +157,7 @@
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
-                                </span>
+                                </div>
                             </td>
                         </tr>
                     }
