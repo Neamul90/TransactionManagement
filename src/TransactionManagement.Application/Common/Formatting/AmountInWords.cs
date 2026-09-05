@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace TransactionManagement.Web.Extensions;
+namespace TransactionManagement.Application.Common.Formatting;
 
 /// <summary>
 /// Spells a monetary amount for the printed document, in the convention used on Bangladeshi
@@ -10,7 +10,9 @@ namespace TransactionManagement.Web.Extensions;
 ///   <item><description>150.00 → "One Hundred Fifty Taka"</description></item>
 ///   <item><description>0.75 → "Zero Taka and Seventy-Five Poysha"</description></item>
 /// </list>
-/// Presentation only: nothing in the application reads this value back.
+/// Formatting only: nothing reads this value back. It lives in Application rather than Web
+/// because both the Razor document and the RDLC renderer consume it, and because keeping it
+/// out of the web project lets the unit tests cover it without referencing ASP.NET.
 /// </summary>
 public static class AmountInWords
 {

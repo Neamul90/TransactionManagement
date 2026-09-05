@@ -1,9 +1,9 @@
 using System.Globalization;
 using FluentAssertions;
-using TransactionManagement.Web.Extensions;
+using TransactionManagement.Application.Common.Formatting;
 using Xunit;
 
-namespace TransactionManagement.UnitTests.Web;
+namespace TransactionManagement.UnitTests.Application.Formatting;
 
 /// <summary>
 /// The amount in words is printed on the transaction document and on the RDLC report, where a

@@ -1,9 +1,9 @@
 using System.Globalization;
 using Microsoft.Extensions.Options;
 using Microsoft.Reporting.NETCore;
+using TransactionManagement.Application.Common.Formatting;
 using TransactionManagement.Application.Dtos.Transactions;
 using TransactionManagement.Web.Configuration;
-using TransactionManagement.Web.Extensions;
 
 namespace TransactionManagement.Web.Reporting;
 
