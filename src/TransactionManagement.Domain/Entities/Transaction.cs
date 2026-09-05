@@ -109,8 +109,6 @@ public sealed class Transaction : BaseEntity, IAggregateRoot
         decimal amount,
         bool isActive)
     {
-        //ValidateDetailDate(detailDate);
-
         var detail = TransactionDetail.Create(productId, detailDate, description, quantity, amount, isActive);
         _details.Add(detail);
 
@@ -129,8 +127,6 @@ public sealed class Transaction : BaseEntity, IAggregateRoot
         bool isActive)
     {
         var detail = FindOwnedDetail(detailId);
-
-        //ValidateDetailDate(detailDate);
 
         detail.Update(productId, detailDate, description, quantity, amount, isActive);
 
@@ -192,10 +188,6 @@ public sealed class Transaction : BaseEntity, IAggregateRoot
 
             var existing = FindOwnedDetail(submitted.Id);
             submittedExistingIds.Add(existing.Id);
-
-            // Validated even for unchanged lines: moving the header date can invalidate a line
-            // that was acceptable when it was first entered.
-            //ValidateDetailDate(submitted.DetailDate);
 
             var isUnchanged = existing.HasSameValuesAs(
                 submitted.ProductId,
@@ -292,15 +284,6 @@ public sealed class Transaction : BaseEntity, IAggregateRoot
             }
         }
     }
-
-    //private void ValidateDetailDate(DateTime detailDate)
-    //{
-    //    // A detail line may be dated after its transaction: goods are often received or delivered
-    //    // against a document raised earlier, so the two dates are deliberately independent.
-    //    Guard.Against(
-    //        detailDate.Date < TransactionDate.AddDays(-DomainConstants.Rules.MaxDetailBackdatingDays),
-    //        $"A detail date cannot precede the transaction date by more than {DomainConstants.Rules.MaxDetailBackdatingDays} days.");
-    //}
 
     private void RecalculateTotals()
     {

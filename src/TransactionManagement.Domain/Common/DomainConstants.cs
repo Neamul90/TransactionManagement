@@ -28,10 +28,4 @@ public static class DomainConstants
         public const int QuantityPrecision = 18;
         public const int QuantityScale = 3;
     }
-
-    public static class Rules
-    {
-        /// <summary>Maximum number of days a detail line may be dated before its transaction date.</summary>
-        public const int MaxDetailBackdatingDays = 90;
-    }
 }

@@ -1,5 +1,4 @@
 using FluentAssertions;
-using TransactionManagement.Domain.Common;
 using TransactionManagement.Domain.Entities;
 using TransactionManagement.Domain.Exceptions;
 using TransactionManagement.UnitTests.Common;
@@ -86,32 +85,28 @@ public sealed class TransactionTests
             .WithMessage("A product must be selected for every detail line.");
     }
 
-    [Fact]
-    public void AddDetail_DatedAfterTheTransaction_IsAccepted()
-    {
-        var transaction = TransactionFactory.CreateNew();
-
-        var act = () => transaction.AddDetail(
-            1, TransactionFactory.Today.AddDays(30), "Line", 1m, 10m, true);
-
-        // Detail dates are independent of the header date; only excessive backdating is refused.
-        act.Should().NotThrow();
-    }
-
-    [Fact]
-    public void AddDetail_BackdatedBeyondTheAllowedWindow_IsRejected()
+    [Theory]
+    [InlineData(365)]
+    [InlineData(30)]
+    [InlineData(0)]
+    [InlineData(-30)]
+    [InlineData(-365)]
+    public void AddDetail_AcceptsAnyDetailDate(int offsetFromTransactionDate)
     {
         var transaction = TransactionFactory.CreateNew();
 
         var act = () => transaction.AddDetail(
             1,
-            TransactionFactory.Today.AddDays(-(DomainConstants.Rules.MaxDetailBackdatingDays + 1)),
+            TransactionFactory.Today.AddDays(offsetFromTransactionDate),
             "Line",
             1m,
             10m,
             true);
 
-        act.Should().Throw<BusinessRuleViolationException>();
+        // A detail date is independent of its transaction date, in either direction: goods are
+        // received and delivered against documents raised earlier or later. Only the date being
+        // present at all is required.
+        act.Should().NotThrow();
     }
 
     [Fact]

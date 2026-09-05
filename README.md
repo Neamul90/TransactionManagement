@@ -296,10 +296,9 @@ Validation happens in three layers, each with a different job:
 2. **FluentValidation** — runs in `ValidationBehavior` for every command, before the handler.
    Shape, ranges, lengths, "at least one active line", no duplicate line identifiers.
 3. **Domain invariants** — enforced by the aggregate itself and impossible to bypass: quantity > 0,
-   amount ≥ 0, transaction date not in the future, detail date not more than 90 days before the
-   transaction date, at least one active line, detail ownership.
-   A detail line *may* be dated after its transaction: goods are often received or delivered against
-   a document raised earlier, so the two dates are independent.
+   amount ≥ 0, transaction date not in the future, at least one active line, detail ownership.
+   A detail date is deliberately unconstrained relative to its transaction date: goods are received
+   and delivered against documents raised earlier or later, so the two dates are independent.
 
 Validators: `CreateTransactionCommandValidator`, `CreateTransactionDetailCommandValidator`,
 `UpdateTransactionCommandValidator`, `UpdateTransactionDetailCommandValidator`,
@@ -459,121 +458,3 @@ Authentication and authorisation are intentionally **not** implemented — see s
   for those tests only; the rest of the model — relationships, cascades, precision, indexes, check
   constraints — is exercised exactly as configured for production. Concurrency itself is covered by
   unit tests and by the SQL Server mapping.
-
----
-
-## 20. Future Improvements
-
-1. Authentication and role-based authorisation (Admin / Operator), with per-action policies.
-2. A committed initial migration, plus a CI step that verifies the model has no pending changes.
-3. Domain events raised by the aggregate (`TransactionCreated`, `TransactionUpdated`) dispatched
-   after commit, for audit trails and integrations.
-4. An audit table capturing who changed what, once a user identity exists to record.
-5. Cached lookup queries with invalidation on master-data change.
-6. `Result<T>` returns for expected business failures, keeping exceptions for the genuinely
-   exceptional.
-7. More report formats and a report parameter screen (date range, partner, product).
-8. Bulk operations for detail lines (paste from spreadsheet, import CSV).
-9. Playwright end-to-end tests covering the add/edit/delete-row flow in a real browser.
-10. Health checks and structured logging to a sink such as Seq or Application Insights.
-
----
-
-## User Interface
-
-The application shell is a fixed navy sidebar, a white topbar, and a gradient page-header card
-carrying the title, breadcrumb and the page's actions — the same shape on every screen.
-
-**All styling lives in `wwwroot/css/site.css`.** No Razor view contains a `style` attribute or a
-`<style>` block, and no JavaScript writes to `element.style`; the scripts toggle classes and let the
-stylesheet decide what that means. The file is organised in numbered sections (design tokens, shell,
-sidebar, topbar, page header, panels, data table, pagination, forms, invoice layout, summary panel,
-action bar, detail grid, error page, utilities, responsive) and every colour, radius, shadow and
-dimension comes from a custom property on `:root`, so re-theming is a matter of editing the tokens.
-
-Bootstrap 5 supplies the grid, form controls and utility classes; `site.css` layers the theme on
-top rather than restating it. Icons are Bootstrap Icons.
-
-The create and edit screens use the invoice layout: master fields and a product quick-search on the
-left above the detail grid, a sticky Summary panel on the right, and a fixed action bar along the
-bottom showing total items, total quantity and grand total next to the save button. The quick-search
-reads its product list out of the detail-row `<template>` already in the page, so the catalogue is
-serialised into the markup exactly once and the two can never drift apart.
-
-### List controls
-
-The transaction list carries the familiar "Show N entries" / "Search:" controls above the grid and
-`Previous 1 2 3 4 5 … 1105 Next` below it. **No client-side table plug-in is used.** The controls are
-a plain GET form: changing the length or typing in the search box re-submits it (debounced), and the
-query still executes in SQL over the whole result set. A browser-side table library would have to
-hold every row in memory to filter or sort, which is exactly what section 16 is designed to avoid.
-
-The pager renders a five-page window plus an ellipsis and the last page, so a 1,105-page result
-produces the same short control as a 3-page one.
-
-### The transaction document
-
-`Transactions/Details/{id}` is laid out as a printable document rather than a data screen:
-letterhead with logo, company name and address; document type, number, date and reference; a
-bill-to / supplier block; the line-item table; totals with the amount spelled out in words; and
-signature lines.
-
-The letterhead is configuration, not markup — the `CompanySettings` section of `appsettings.json`
-carries the name, tagline, address, contact details, logo path, currency symbol and currency name,
-and the same section feeds the RDLC report header, so the screen and the report cannot disagree
-about who published the document. The bundled `wwwroot/img/logo.svg` is a placeholder mark; replace
-the file or point `LogoPath` elsewhere.
-
-The print stylesheet drops the sidebar, topbar and every action, sets A4 with 12 mm margins, and
-marks rows, the totals block and the signature row `break-inside: avoid`, so **Print** in the browser
-produces the same document as the RDLC PDF without any separate print view.
-
-`Reports/TransactionReport.rdlc` reproduces that same document: embedded logo, letterhead,
-`TRANSACTION` title with number/date/reference, the parties row, the blue line table, remarks and
-amount in words, the totals box and the signature lines. Two things keep the two in step — the
-letterhead comes from `CompanySettings` on both sides, and every value the report prints is
-formatted in `RdlcReportRenderer` and passed in as a report parameter rather than being computed in
-an RDLC expression. Adding a field to the report therefore means adding a parameter in one C# method,
-not editing expressions in two places.
-
-The logo is embedded in the definition as base64 PNG (`EmbeddedImages`), because RDLC cannot consume
-the SVG the screen uses. `wwwroot/img/logo.svg` and that embedded copy are the same mark; replacing
-the logo means replacing both.
-
-### Lookups are server-side
-
-Neither the product catalogue nor the partner list is rendered into the transaction form. Both are
-queried from `/Lookups` as the user types, 20 rows at a time, through
-`SearchProductsQuery` / `SearchBusinessPartnersQuery` — bounded by `LookupDefaults`
-(20 by default, 50 hard ceiling) so no caller can turn a type-ahead into a table scan. This is the one place the application returns JSON instead of a
-view, and it earns the exception: with a real catalogue of ~22,000 products, rendering a `<select>`
-per detail row would put 22,000 `<option>` elements in the page for every line.
-
-A detail row therefore stores the product identifier in a hidden input and displays the name; the
-product is chosen once, in the search box. When a submitted form fails validation the rows come back
-carrying identifiers but no names, so `GetProductsByIdsQuery` and `GetBusinessPartnerByIdQuery`
-resolve exactly the labels that screen needs — never the whole list.
-
-### Responsive behaviour
-
-Every screen is usable from roughly 320px upward. Below 992px the sidebar becomes an overlay with a
-backdrop; below 768px both tables — the read-only list and the editable detail grid — stop being
-tables and become stacked cards, each cell taking its heading from its own `data-label` attribute
-rather than from a header row that is no longer visible; below 576px the pager keeps only Previous,
-Next and the current page.
-
-Print styles hide the shell, so any screen prints as a clean document.
-
----
-
-## Where to look first
-
-| To understand… | Read |
-| --- | --- |
-| The master–detail algorithm | `Domain/Entities/Transaction.cs` → `ApplyDetails` |
-| How a save is orchestrated | `Application/Transactions/Commands/UpdateTransaction/` |
-| How rows bind without renumbering | `Web/Views/Transactions/_DetailGrid.cshtml` |
-| How errors reach the user | `Web/Infrastructure/GlobalExceptionHandler.cs` |
-| How the report is built | `Infrastructure/Reporting/TransactionReportService.cs` |
-| That the reconciliation is correct | `UnitTests/Domain/TransactionDetailReconciliationTests.cs` |
-| Any styling question | `Web/wwwroot/css/site.css` — the only stylesheet; no view contains an inline style |
