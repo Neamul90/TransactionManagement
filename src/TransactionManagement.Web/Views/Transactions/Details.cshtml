@@ -37,6 +37,13 @@
             <i class="bi bi-file-earmark-spreadsheet"></i> Excel
         </a>
 
+        <a class="btn-header"
+           asp-action="Report"
+           asp-route-id="@transaction.Id"
+           asp-route-format="@((int)TransactionManagement.Web.Reporting.ReportFormat.Word)">
+            <i class="bi bi-file-earmark-word"></i> Word
+        </a>
+
         <form method="post"
               asp-action="Delete"
               asp-route-id="@transaction.Id"
