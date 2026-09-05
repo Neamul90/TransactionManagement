@@ -183,8 +183,10 @@ only into empty tables, so restarting never duplicates data.
 
 ## 8. Application Setup
 
+Repository: <https://github.com/Neamul90/TransactionManagement>
+
 ```bash
-git clone <repository-url>
+git clone https://github.com/Neamul90/TransactionManagement
 cd TransactionManagement
 dotnet restore
 dotnet build
