@@ -44,10 +44,21 @@
                         <td data-label="Product">
                             <input type="hidden" name="Details.Index" value="@key" />
                             <input type="hidden" name="Details[@key].Id" value="@detail.Id" />
-                            @* The product is chosen in the search box above, so the row stores the
-                               identifier and shows the name. No per-row catalogue is rendered. *@
-                            <input type="hidden" name="Details[@key].ProductId" value="@detail.ProductId" class="detail-product-id" />
-                            <span class="detail-grid__product">@detail.ProductDisplayText</span>
+                            @* Only the option already chosen is rendered. Everything else is fetched
+                               from the lookup endpoint as the user types, so the row never carries
+                               the catalogue. Not marked `required`: the browser cannot focus a
+                               control Select2 has hidden, and the command validator refuses a
+                               missing product anyway. *@
+                            <select name="Details[@key].ProductId"
+                                    class="form-select form-select-sm"
+                                    data-select2-url="@Url.Action("Products", "Lookups")"
+                                    data-select2-placeholder="Search product...">
+                                <option value=""></option>
+                                @if (detail.ProductId > 0 && !string.IsNullOrEmpty(detail.ProductDisplayText))
+                                {
+                                    <option value="@detail.ProductId" selected>@detail.ProductDisplayText</option>
+                                }
+                            </select>
                         </td>
                         <td data-label="Date">
                             <input type="date"
@@ -123,8 +134,12 @@
         <td data-label="Product">
             <input type="hidden" name="Details.Index" value="__KEY__" />
             <input type="hidden" name="Details[__KEY__].Id" value="0" />
-            <input type="hidden" name="Details[__KEY__].ProductId" value="0" class="detail-product-id" />
-            <span class="detail-grid__product"></span>
+            <select name="Details[__KEY__].ProductId"
+                    class="form-select form-select-sm"
+                    data-select2-url="@Url.Action("Products", "Lookups")"
+                    data-select2-placeholder="Search product...">
+                <option value=""></option>
+            </select>
         </td>
         <td data-label="Date">
             <input type="date" name="Details[__KEY__].DetailDate" class="form-control form-control-sm" required />

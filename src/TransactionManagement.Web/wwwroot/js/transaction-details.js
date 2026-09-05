@@ -30,11 +30,16 @@
     var searchResults = document.getElementById('product-search-results');
     var searchUrl = searchInput ? searchInput.dataset.productSearchUrl : null;
 
-    /* -- Partner picker ---------------------------------------------------------------------- */
-    (function initPartnerPicker() {
-        var select = document.querySelector('select[data-select2-url]');
-
+    /* -- Remote pickers ------------------------------------------------------------------------
+       One helper for the partner select and for every row's product select. Both query the same
+       lookup endpoint, so neither ever holds more than the option currently chosen plus whatever
+       the last search returned. */
+    function initRemoteSelect(select) {
         if (!select || !window.jQuery || !window.jQuery.fn || !window.jQuery.fn.select2) {
+            return;
+        }
+
+        if (select.dataset.select2Ready === 'true') {
             return;
         }
 
@@ -56,7 +61,13 @@
                 cache: true
             }
         });
-    })();
+
+        select.dataset.select2Ready = 'true';
+    }
+
+    function initAllRemoteSelects() {
+        document.querySelectorAll('select[data-select2-url]').forEach(initRemoteSelect);
+    }
 
     /* -- Rows -------------------------------------------------------------------------------- */
     function newRowKey() {
@@ -98,15 +109,26 @@
             dateInput.value = defaultDetailDate();
         }
 
-        // textContent, not innerHTML: the product name is server data and is never parsed as markup.
-        row.querySelector('.detail-product-id').value = product.id;
-        row.querySelector('.detail-grid__product').textContent = product.text;
+        var productSelect = row.querySelector('select[data-select2-url]');
+
+        if (productSelect && product) {
+            // The option has to exist before Select2 initialises, or it renders as unselected.
+            // textContent, not innerHTML: the name is server data and is never parsed as markup.
+            var option = document.createElement('option');
+            option.value = product.id;
+            option.textContent = product.text;
+            option.selected = true;
+            productSelect.appendChild(option);
+        }
 
         body.appendChild(row);
 
         // State first, so a later failure can never leave the grid claiming to be empty.
         updateEmptyState();
         recalculateTotals();
+
+        // Select2 measures zero width unless the row is already in the document.
+        initRemoteSelect(productSelect);
 
         var quantity = row.querySelector('.detail-quantity');
 
@@ -448,6 +470,7 @@
         }
     });
 
+    initAllRemoteSelects();
     updateEmptyState();
     recalculateTotals();
 })();
